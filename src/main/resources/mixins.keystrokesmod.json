@@ -1,0 +1,32 @@
+{
+    "required": true,
+    "package": "keystrokesmod.client.mixin.mixins",
+    "refmap": "mixins.keystrokesmod.refmap.json",
+    "compatibilityLevel": "JAVA_8",
+    "mixins": [
+        "IItemBucket",
+        "IItemTool",
+        "MixinBlock",
+        "MixinBlockGrass",
+        "MixinC03PacketPlayer",
+        "MixinEntity",
+        "MixinEntityPlayer",
+        "MixinEntityPlayerSP",
+        "MixinEntityRenderer",
+        "MixinFontRenderer",
+        "MixinGuiChat",
+        "MixinGuiUtilRenderComponents",
+        "MixinMinecraft",
+        "MixinNetworkManager"
+    ],
+    "client": [
+        "IC0DPacketCloseWindow",
+        "IMinecraft",
+        "MixinBlockModelRenderer",
+        "MixinGuiIngame",
+        "MixinGuiScreen",
+        "MixinGuiSpectator",
+        "MixinItemRenderer",
+        "MixinWorldRenderer"
+    ]
+}
