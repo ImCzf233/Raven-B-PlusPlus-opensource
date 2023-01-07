@@ -16,28 +16,28 @@ import net.minecraft.client.*;
 
 public class FontRenderer extends net.minecraft.client.gui.FontRenderer
 {
-    private static final ResourceLocation[] field_111274_c;
+    private static final ResourceLocation[] unicodePageLocations;
     protected int[] field_78286_d;
     public int field_78288_b;
     public Random field_78289_c;
     protected byte[] field_78287_e;
-    private final int[] field_78285_g;
+    private final int[] colorCode;
     protected final ResourceLocation field_111273_g;
-    private final TextureManager field_78298_i;
+    private final TextureManager renderEngine;
     protected float field_78295_j;
     protected float field_78296_k;
-    private boolean field_78293_l;
-    private boolean field_78294_m;
-    private float field_78291_n;
-    private float field_78292_o;
-    private float field_78306_p;
-    private float field_78305_q;
-    private int field_78304_r;
-    private boolean field_78303_s;
-    private boolean field_78302_t;
-    private boolean field_78301_u;
-    private boolean field_78300_v;
-    private boolean field_78299_w;
+    private boolean unicodeFlag;
+    private boolean bidiFlag;
+    private float red;
+    private float blue;
+    private float green;
+    private float alpha;
+    private int textColor;
+    private boolean randomStyle;
+    private boolean boldStyle;
+    private boolean italicStyle;
+    private boolean underlineStyle;
+    private boolean strikethroughStyle;
     
     public FontRenderer(final GameSettings gameSettingsIn, final ResourceLocation location, final TextureManager textureManagerIn, final boolean unicode) {
         super(gameSettingsIn, location, textureManagerIn, unicode);
@@ -45,10 +45,10 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         this.field_78288_b = 9;
         this.field_78289_c = new Random();
         this.field_78287_e = new byte[65536];
-        this.field_78285_g = new int[32];
+        this.colorCode = new int[32];
         this.field_111273_g = location;
-        this.field_78298_i = textureManagerIn;
-        this.field_78293_l = unicode;
+        this.renderEngine = textureManagerIn;
+        this.unicodeFlag = unicode;
         this.bindTexture(this.field_111273_g);
         for (int i = 0; i < 32; ++i) {
             final int j = (i >> 3 & 0x1) * 85;
@@ -71,17 +71,17 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
                 l /= 4;
                 i2 /= 4;
             }
-            this.field_78285_g[i] = ((k & 0xFF) << 16 | (l & 0xFF) << 8 | (i2 & 0xFF));
+            this.colorCode[i] = ((k & 0xFF) << 16 | (l & 0xFF) << 8 | (i2 & 0xFF));
         }
-        this.func_98306_d();
+        this.readGlyphSizes();
     }
     
     public void func_110549_a(final IResourceManager resourceManager) {
-        this.func_111272_d();
-        this.func_98306_d();
+        this.readFontTexture();
+        this.readGlyphSizes();
     }
     
-    private void func_111272_d() {
+    private void readFontTexture() {
         BufferedImage bufferedimage;
         try {
             bufferedimage = TextureUtil.func_177053_a(this.getResourceInputStream(this.field_111273_g));
@@ -123,7 +123,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         }
     }
     
-    private void func_98306_d() {
+    private void readGlyphSizes() {
         InputStream inputstream = null;
         try {
             inputstream = this.getResourceInputStream(new ResourceLocation("font/glyph_sizes.bin"));
@@ -142,7 +142,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
             return 4.0f;
         }
         final int i = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8?\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1??????????\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261¡À\u2265\u2264\u2320\u2321\u00f7\u2248¡ã\u2219¡¤\u221a\u207f?\u25a0\u0000".indexOf(ch);
-        return (i != -1 && !this.field_78293_l) ? this.func_78266_a(i, italic) : this.func_78277_a(ch, italic);
+        return (i != -1 && !this.unicodeFlag) ? this.func_78266_a(i, italic) : this.func_78277_a(ch, italic);
     }
     
     protected float func_78266_a(final int ch, final boolean italic) {
@@ -165,15 +165,15 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         return (float)l;
     }
     
-    private ResourceLocation func_111271_a(final int page) {
-        if (FontRenderer.field_111274_c[page] == null) {
-            FontRenderer.field_111274_c[page] = new ResourceLocation(String.format("textures/font/unicode_page_%02x.png", page));
+    private ResourceLocation getUnicodePageLocation(final int page) {
+        if (FontRenderer.unicodePageLocations[page] == null) {
+            FontRenderer.unicodePageLocations[page] = new ResourceLocation(String.format("textures/font/unicode_page_%02x.png", page));
         }
-        return FontRenderer.field_111274_c[page];
+        return FontRenderer.unicodePageLocations[page];
     }
     
-    private void func_78257_a(final int page) {
-        this.bindTexture(this.func_111271_a(page));
+    private void loadGlyphTexture(final int page) {
+        this.bindTexture(this.getUnicodePageLocation(page));
     }
     
     protected float func_78277_a(final char ch, final boolean italic) {
@@ -181,7 +181,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
             return 0.0f;
         }
         final int i = ch / '\u0100';
-        this.func_78257_a(i);
+        this.loadGlyphTexture(i);
         final int j = this.field_78287_e[ch] >>> 4;
         final int k = this.field_78287_e[ch] & 0xF;
         final float f = (float)j;
@@ -213,19 +213,19 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     
     public int func_175065_a(final String text, final float x, final float y, final int color, final boolean dropShadow) {
         this.enableAlpha();
-        this.func_78265_b();
+        this.resetStyles();
         int i;
         if (dropShadow) {
-            i = this.func_180455_b(text, x + 1.0f, y + 1.0f, color, true);
-            i = Math.max(i, this.func_180455_b(text, x, y, color, false));
+            i = this.renderString(text, x + 1.0f, y + 1.0f, color, true);
+            i = Math.max(i, this.renderString(text, x, y, color, false));
         }
         else {
-            i = this.func_180455_b(text, x, y, color, false);
+            i = this.renderString(text, x, y, color, false);
         }
         return i;
     }
     
-    private String func_147647_b(final String text) {
+    private String bidiReorder(final String text) {
         try {
             final Bidi bidi = new Bidi(new ArabicShaping(8).shape(text), 127);
             bidi.setReorderingMode(0);
@@ -236,63 +236,63 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         }
     }
     
-    private void func_78265_b() {
-        this.field_78303_s = false;
-        this.field_78302_t = false;
-        this.field_78301_u = false;
-        this.field_78300_v = false;
-        this.field_78299_w = false;
+    private void resetStyles() {
+        this.randomStyle = false;
+        this.boldStyle = false;
+        this.italicStyle = false;
+        this.underlineStyle = false;
+        this.strikethroughStyle = false;
     }
     
-    private void func_78255_a(final String text, final boolean shadow) {
+    private void renderStringAtPos(final String text, final boolean shadow) {
         for (int i = 0; i < text.length(); ++i) {
             char c0 = text.charAt(i);
             if (c0 == '¡ì' && i + 1 < text.length()) {
                 int i2 = "0123456789abcdefklmnor".indexOf(text.toLowerCase(Locale.ENGLISH).charAt(i + 1));
                 if (i2 < 16) {
-                    this.field_78303_s = false;
-                    this.field_78302_t = false;
-                    this.field_78299_w = false;
-                    this.field_78300_v = false;
-                    this.field_78301_u = false;
+                    this.randomStyle = false;
+                    this.boldStyle = false;
+                    this.strikethroughStyle = false;
+                    this.underlineStyle = false;
+                    this.italicStyle = false;
                     if (i2 < 0 || i2 > 15) {
                         i2 = 15;
                     }
                     if (shadow) {
                         i2 += 16;
                     }
-                    final int j1 = this.field_78285_g[i2];
-                    this.field_78304_r = j1;
-                    this.setColor((j1 >> 16) / 255.0f, (j1 >> 8 & 0xFF) / 255.0f, (j1 & 0xFF) / 255.0f, this.field_78305_q);
+                    final int j1 = this.colorCode[i2];
+                    this.textColor = j1;
+                    this.setColor((j1 >> 16) / 255.0f, (j1 >> 8 & 0xFF) / 255.0f, (j1 & 0xFF) / 255.0f, this.alpha);
                 }
                 else if (i2 == 16) {
-                    this.field_78303_s = true;
+                    this.randomStyle = true;
                 }
                 else if (i2 == 17) {
-                    this.field_78302_t = true;
+                    this.boldStyle = true;
                 }
                 else if (i2 == 18) {
-                    this.field_78299_w = true;
+                    this.strikethroughStyle = true;
                 }
                 else if (i2 == 19) {
-                    this.field_78300_v = true;
+                    this.underlineStyle = true;
                 }
                 else if (i2 == 20) {
-                    this.field_78301_u = true;
+                    this.italicStyle = true;
                 }
                 else if (i2 == 21) {
-                    this.field_78303_s = false;
-                    this.field_78302_t = false;
-                    this.field_78299_w = false;
-                    this.field_78300_v = false;
-                    this.field_78301_u = false;
-                    this.setColor(this.field_78291_n, this.field_78292_o, this.field_78306_p, this.field_78305_q);
+                    this.randomStyle = false;
+                    this.boldStyle = false;
+                    this.strikethroughStyle = false;
+                    this.underlineStyle = false;
+                    this.italicStyle = false;
+                    this.setColor(this.red, this.blue, this.green, this.alpha);
                 }
                 ++i;
             }
             else {
                 int k = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8?\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1??????????\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261¡À\u2265\u2264\u2320\u2321\u00f7\u2248¡ã\u2219¡¤\u221a\u207f?\u25a0\u0000".indexOf(c0);
-                if (this.field_78303_s && k != -1) {
+                if (this.randomStyle && k != -1) {
                     final int l = this.func_78263_a(c0);
                     char c2;
                     do {
@@ -301,24 +301,24 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
                     } while (l != this.func_78263_a(c2));
                     c0 = c2;
                 }
-                final float f1 = (k == -1 || this.field_78293_l) ? 0.5f : 1.0f;
-                final boolean flag = (c0 == '\0' || k == -1 || this.field_78293_l) && shadow;
+                final float f1 = (k == -1 || this.unicodeFlag) ? 0.5f : 1.0f;
+                final boolean flag = (c0 == '\0' || k == -1 || this.unicodeFlag) && shadow;
                 if (flag) {
                     this.field_78295_j -= f1;
                     this.field_78296_k -= f1;
                 }
-                float f2 = this.func_181559_a(c0, this.field_78301_u);
+                float f2 = this.func_181559_a(c0, this.italicStyle);
                 if (flag) {
                     this.field_78295_j += f1;
                     this.field_78296_k += f1;
                 }
-                if (this.field_78302_t) {
+                if (this.boldStyle) {
                     this.field_78295_j += f1;
                     if (flag) {
                         this.field_78295_j -= f1;
                         this.field_78296_k -= f1;
                     }
-                    this.func_181559_a(c0, this.field_78301_u);
+                    this.func_181559_a(c0, this.italicStyle);
                     this.field_78295_j -= f1;
                     if (flag) {
                         this.field_78295_j += f1;
@@ -332,7 +332,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     protected void doDraw(final float f) {
-        if (this.field_78299_w) {
+        if (this.strikethroughStyle) {
             final Tessellator tessellator = Tessellator.func_178181_a();
             final WorldRenderer worldrenderer = tessellator.func_178180_c();
             GlStateManager.func_179090_x();
@@ -344,12 +344,12 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
             tessellator.func_78381_a();
             GlStateManager.func_179098_w();
         }
-        if (this.field_78300_v) {
+        if (this.underlineStyle) {
             final Tessellator tessellator2 = Tessellator.func_178181_a();
             final WorldRenderer worldrenderer2 = tessellator2.func_178180_c();
             GlStateManager.func_179090_x();
             worldrenderer2.func_181668_a(7, DefaultVertexFormats.field_181705_e);
-            final int l = this.field_78300_v ? -1 : 0;
+            final int l = this.underlineStyle ? -1 : 0;
             worldrenderer2.func_181662_b((double)(this.field_78295_j + l), (double)(this.field_78296_k + this.field_78288_b), 0.0).func_181675_d();
             worldrenderer2.func_181662_b((double)(this.field_78295_j + f), (double)(this.field_78296_k + this.field_78288_b), 0.0).func_181675_d();
             worldrenderer2.func_181662_b((double)(this.field_78295_j + f), (double)(this.field_78296_k + this.field_78288_b - 1.0f), 0.0).func_181675_d();
@@ -360,20 +360,20 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         this.field_78295_j += (int)f;
     }
     
-    private int func_78274_b(final String text, int x, final int y, final int width, final int color, final boolean dropShadow) {
-        if (this.field_78294_m) {
-            final int i = this.func_78256_a(this.func_147647_b(text));
+    private int renderStringAligned(final String text, int x, final int y, final int width, final int color, final boolean dropShadow) {
+        if (this.bidiFlag) {
+            final int i = this.func_78256_a(this.bidiReorder(text));
             x = x + width - i;
         }
-        return this.func_180455_b(text, (float)x, (float)y, color, dropShadow);
+        return this.renderString(text, (float)x, (float)y, color, dropShadow);
     }
     
-    private int func_180455_b(String text, final float x, final float y, int color, final boolean dropShadow) {
+    private int renderString(String text, final float x, final float y, int color, final boolean dropShadow) {
         if (text == null) {
             return 0;
         }
-        if (this.field_78294_m) {
-            text = this.func_147647_b(text);
+        if (this.bidiFlag) {
+            text = this.bidiReorder(text);
         }
         if ((color & 0xFC000000) == 0x0) {
             color |= 0xFF000000;
@@ -381,14 +381,14 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         if (dropShadow) {
             color = ((color & 0xFCFCFC) >> 2 | (color & 0xFF000000));
         }
-        this.field_78291_n = (color >> 16 & 0xFF) / 255.0f;
-        this.field_78292_o = (color >> 8 & 0xFF) / 255.0f;
-        this.field_78306_p = (color & 0xFF) / 255.0f;
-        this.field_78305_q = (color >> 24 & 0xFF) / 255.0f;
-        this.setColor(this.field_78291_n, this.field_78292_o, this.field_78306_p, this.field_78305_q);
+        this.red = (color >> 16 & 0xFF) / 255.0f;
+        this.blue = (color >> 8 & 0xFF) / 255.0f;
+        this.green = (color & 0xFF) / 255.0f;
+        this.alpha = (color >> 24 & 0xFF) / 255.0f;
+        this.setColor(this.red, this.blue, this.green, this.alpha);
         this.field_78295_j = x;
         this.field_78296_k = y;
-        this.func_78255_a(text, dropShadow);
+        this.renderStringAtPos(text, dropShadow);
         return (int)this.field_78295_j;
     }
     
@@ -430,7 +430,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
             return 4;
         }
         final int i = "\u00c0\u00c1\u00c2\u00c8\u00ca\u00cb\u00cd\u00d3\u00d4\u00d5\u00da\u00df\u00e3\u00f5\u011f\u0130\u0131\u0152\u0153\u015e\u015f\u0174\u0175\u017e\u0207\u0000\u0000\u0000\u0000\u0000\u0000\u0000 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u0000\u00c7\u00fc\u00e9\u00e2\u00e4\u00e0\u00e5\u00e7\u00ea\u00eb\u00e8\u00ef\u00ee\u00ec\u00c4\u00c5\u00c9\u00e6\u00c6\u00f4\u00f6\u00f2\u00fb\u00f9\u00ff\u00d6\u00dc\u00f8?\u00d8\u00d7\u0192\u00e1\u00ed\u00f3\u00fa\u00f1\u00d1??????????\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255d\u255c\u255b\u2510\u2514\u2534\u252c\u251c\u2500\u253c\u255e\u255f\u255a\u2554\u2569\u2566\u2560\u2550\u256c\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256b\u256a\u2518\u250c\u2588\u2584\u258c\u2590\u2580\u03b1\u03b2\u0393\u03c0\u03a3\u03c3\u03bc\u03c4\u03a6\u0398\u03a9\u03b4\u221e\u2205\u2208\u2229\u2261¡À\u2265\u2264\u2320\u2321\u00f7\u2248¡ã\u2219¡¤\u221a\u207f?\u25a0\u0000".indexOf(character);
-        if (character > '\0' && i != -1 && !this.field_78293_l) {
+        if (character > '\0' && i != -1 && !this.unicodeFlag) {
             return this.field_78286_d[i];
         }
         if (this.field_78287_e[character] != 0) {
@@ -488,7 +488,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         return stringbuilder.toString();
     }
     
-    private String func_78273_d(String text) {
+    private String trimStringNewline(String text) {
         while (text != null && text.endsWith("\n")) {
             text = text.substring(0, text.length() - 1);
         }
@@ -496,15 +496,15 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     public void func_78279_b(String str, final int x, final int y, final int wrapWidth, final int textColor) {
-        this.func_78265_b();
-        this.field_78304_r = textColor;
-        str = this.func_78273_d(str);
-        this.func_78268_b(str, x, y, wrapWidth, false);
+        this.resetStyles();
+        this.textColor = textColor;
+        str = this.trimStringNewline(str);
+        this.renderSplitString(str, x, y, wrapWidth, false);
     }
     
-    private void func_78268_b(final String str, final int x, int y, final int wrapWidth, final boolean addShadow) {
+    private void renderSplitString(final String str, final int x, int y, final int wrapWidth, final boolean addShadow) {
         for (final String s : this.func_78271_c(str, wrapWidth)) {
-            this.func_78274_b(s, x, y, wrapWidth, this.field_78304_r, addShadow);
+            this.renderStringAligned(s, x, y, wrapWidth, this.textColor, addShadow);
             y += this.field_78288_b;
         }
     }
@@ -514,15 +514,15 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     public void func_78264_a(final boolean unicodeFlagIn) {
-        this.field_78293_l = unicodeFlagIn;
+        this.unicodeFlag = unicodeFlagIn;
     }
     
     public boolean func_82883_a() {
-        return this.field_78293_l;
+        return this.unicodeFlag;
     }
     
     public void func_78275_b(final boolean bidiFlagIn) {
-        this.field_78294_m = bidiFlagIn;
+        this.bidiFlag = bidiFlagIn;
     }
     
     public List<String> func_78271_c(final String str, final int wrapWidth) {
@@ -530,18 +530,18 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     String func_78280_d(final String str, final int wrapWidth) {
-        final int i = this.func_78259_e(str, wrapWidth);
+        final int i = this.sizeStringToWidth(str, wrapWidth);
         if (str.length() <= i) {
             return str;
         }
         final String s = str.substring(0, i);
         final char c0 = str.charAt(i);
         final boolean flag = c0 == ' ' || c0 == '\n';
-        final String s2 = func_78282_e(s) + str.substring(i + (flag ? 1 : 0));
+        final String s2 = getFormatFromString(s) + str.substring(i + (flag ? 1 : 0));
         return s + "\n" + this.func_78280_d(s2, wrapWidth);
     }
     
-    private int func_78259_e(final String str, final int wrapWidth) {
+    private int sizeStringToWidth(final String str, final int wrapWidth) {
         final int i = str.length();
         int j = 0;
         int k = 0;
@@ -569,7 +569,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
                             flag = true;
                             break Label_0164;
                         }
-                        if (c2 == 'r' || c2 == 'R' || func_78272_b(c2)) {
+                        if (c2 == 'r' || c2 == 'R' || isFormatColor(c2)) {
                             flag = false;
                         }
                         break Label_0164;
@@ -592,26 +592,26 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
         return (k != i && l != -1 && l < k) ? l : k;
     }
     
-    private static boolean func_78272_b(final char colorChar) {
+    private static boolean isFormatColor(final char colorChar) {
         return (colorChar >= '0' && colorChar <= '9') || (colorChar >= 'a' && colorChar <= 'f') || (colorChar >= 'A' && colorChar <= 'F');
     }
     
-    private static boolean func_78270_c(final char formatChar) {
+    private static boolean isFormatSpecial(final char formatChar) {
         return (formatChar >= 'k' && formatChar <= 'o') || (formatChar >= 'K' && formatChar <= 'O') || formatChar == 'r' || formatChar == 'R';
     }
     
-    public static String func_78282_e(final String text) {
+    public static String getFormatFromString(final String text) {
         StringBuilder s = new StringBuilder();
         int i = -1;
         final int j = text.length();
         while ((i = text.indexOf(167, i + 1)) != -1) {
             if (i < j - 1) {
                 final char c0 = text.charAt(i + 1);
-                if (func_78272_b(c0)) {
+                if (isFormatColor(c0)) {
                     s = new StringBuilder("¡ì" + c0);
                 }
                 else {
-                    if (!func_78270_c(c0)) {
+                    if (!isFormatSpecial(c0)) {
                         continue;
                     }
                     s.append("¡ì").append(c0);
@@ -622,7 +622,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     public boolean func_78260_a() {
-        return this.field_78294_m;
+        return this.bidiFlag;
     }
     
     protected void setColor(final float r, final float g, final float b, final float a) {
@@ -634,7 +634,7 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     protected void bindTexture(final ResourceLocation location) {
-        this.field_78298_i.func_110577_a(location);
+        this.renderEngine.func_110577_a(location);
     }
     
     protected InputStream getResourceInputStream(final ResourceLocation location) throws IOException {
@@ -642,10 +642,10 @@ public class FontRenderer extends net.minecraft.client.gui.FontRenderer
     }
     
     public int func_175064_b(final char character) {
-        return this.field_78285_g["0123456789abcdef".indexOf(character)];
+        return this.colorCode["0123456789abcdef".indexOf(character)];
     }
     
     static {
-        field_111274_c = new ResourceLocation[256];
+        unicodePageLocations = new ResourceLocation[256];
     }
 }

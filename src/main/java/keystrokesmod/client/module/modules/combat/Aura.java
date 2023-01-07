@@ -67,14 +67,14 @@ public class Aura extends Module
         this.registerSettings(Aura.aps = new DoubleSliderSetting("APS", 6.0, 8.0, 1.0, 20.0, 0.1), Aura.attackReach = new SliderSetting("Reach", 3.0, 3.0, 8.0, 0.1), Aura.targetRange = new SliderSetting("Target Range", 3.3, 3.0, 8.0, 0.1), Aura.fovCheck = new TickSetting("FOV Check", false), Aura.fov = new SliderSetting("FOV", 90.0, 0.0, 180.0, 1.0), Aura.abMode = new ComboSetting<AutoBlockMode>("AutoBlock", AutoBlockMode.None), Aura.atDesc = new DescriptionSetting("Pre is recommended."), Aura.attackTimingSetting = new ComboSetting<AttackTiming>("Attack Timing", AttackTiming.Pre), Aura.raytrace = new TickSetting("Raytrace Check", false), Aura.rotCheck = new TickSetting("Rotation Check", true), Aura.turnSpeed = new SliderSetting("Rotation Speed", 45.0, 10.0, 180.0, 5.0), Aura.lockView = new TickSetting("Lock View", false), new DescriptionSetting("   "), new DescriptionSetting("Targets:"), Aura.targetInvisibles = new TickSetting("Invisibles", false), Aura.targetTeammates = new TickSetting("Teammates", false), Aura.targetPlayers = new TickSetting("Players", true), Aura.targetMobs = new TickSetting("Mobs", false), Aura.targetAnimals = new TickSetting("Animals", false), Aura.sortingMode = new ComboSetting<SortingMethod>("Sorting", SortingMethod.Combined));
         Aura.instance = this;
     }
-
+    
     @Subscribe
     public void onPacket(final PacketEvent e) {
         if (e.getPacket() instanceof C0APacketAnimation) {
             this.attackTimer.reset();
         }
     }
-
+    
     @Subscribe
     public void onUpdate(final UpdateEvent e) {
         if (e.isPre()) {
@@ -128,33 +128,33 @@ public class Aura extends Module
             }
         }
     }
-
+    
     private static double getDistToEntity(final double x, final double y, final double z) {
         final double xDif = x - Aura.mc.field_71439_g.field_70165_t;
         final double yDif = y - Aura.mc.field_71439_g.field_70163_u;
         final double zDif = z - Aura.mc.field_71439_g.field_70161_v;
         return Math.sqrt(xDif * xDif + zDif * zDif + yDif * yDif);
     }
-
+    
     public static boolean isAutoBlocking() {
         final Aura aura = getInstance();
         return aura.isEnabled() && aura.entityInBlockRange && Aura.abMode.getMode() != AutoBlockMode.None;
     }
-
+    
     public static boolean isBlocking() {
         final Aura aura = getInstance();
         return aura.isEnabled() && aura.blocking;
     }
-
+    
     public static boolean doSlowdown() {
         final Aura aura = getInstance();
         return aura.isEnabled() && aura.blocking && Aura.abMode.getMode().slow;
     }
-
+    
     public static Aura getInstance() {
         return Aura.instance;
     }
-
+    
     public static double getEffectiveHealth(final EntityLivingBase entity) {
         if (entity instanceof EntityPlayer) {
             final EntityPlayer player = (EntityPlayer)entity;
@@ -162,7 +162,7 @@ public class Aura extends Module
         }
         return 0.0;
     }
-
+    
     private void tryAttack(final UpdateEvent e) {
         if (this.isUsingItem()) {
             return;
@@ -196,7 +196,7 @@ public class Aura extends Module
             }
         }
     }
-
+    
     private boolean isLookingAtEntity(final float yaw, final float pitch) {
         final double range = Aura.attackReach.getInput();
         final Vec3 src = Aura.mc.field_71439_g.func_174824_e(1.0f);
@@ -216,7 +216,7 @@ public class Aura extends Module
         }
         return !Aura.rotCheck.isToggled() || this.target.func_174813_aQ().func_72314_b(0.10000000149011612, 0.10000000149011612, 0.10000000149011612).func_72327_a(src, dest) != null;
     }
-
+    
     private EntityData computeData(final Entity entity) {
         final EntityData data = this.entityDataCache.getOrDefault(entity, null);
         EntityData requiredData;
@@ -228,7 +228,7 @@ public class Aura extends Module
         }
         return requiredData;
     }
-
+    
     private boolean fovCheck(final EntityLivingBase entity, final int fov) {
         final float[] rotations = this.computeData((Entity)entity).rotations;
         final EntityPlayer player = (EntityPlayer)Aura.mc.field_71439_g;
@@ -236,12 +236,12 @@ public class Aura extends Module
         final float pitchChange = MathHelper.func_76142_g(player.field_70125_A - rotations[1]);
         return Math.sqrt(yawChange * yawChange + pitchChange * pitchChange) < fov;
     }
-
+    
     @Override
     public void onEnable() {
         this.entityDataCache.clear();
     }
-
+    
     @Override
     public void onDisable() {
         this.target = null;
@@ -251,19 +251,19 @@ public class Aura extends Module
             this.blocking = false;
         }
     }
-
+    
     private boolean isInMenu() {
         return Aura.mc.field_71462_r != null;
     }
-
+    
     private boolean isOccupied() {
         return this.isInMenu();
     }
-
+    
     public EntityLivingBase getTarget() {
         return this.target;
     }
-
+    
     private boolean checkWaitTicks() {
         if (this.waitTicks > 0) {
             --this.waitTicks;
@@ -271,16 +271,16 @@ public class Aura extends Module
         }
         return false;
     }
-
+    
     private boolean isUsingItem() {
         return Aura.mc.field_71439_g.func_71039_bw() && !this.isHoldingSword();
     }
-
+    
     private boolean isHoldingSword() {
         final ItemStack stack;
         return (stack = Aura.mc.field_71439_g.func_71045_bC()) != null && stack.func_77973_b() instanceof ItemSword;
     }
-
+    
     private boolean isValid(final EntityLivingBase entity) {
         if (!entity.func_70089_S()) {
             return false;
@@ -321,7 +321,7 @@ public class Aura extends Module
         }
         return this.computeData((Entity)entity).dist < Math.max(Aura.targetRange.getInput(), Aura.attackReach.getInput()) && (!Aura.fovCheck.isToggled() || this.fovCheck(entity, (int)Aura.fov.getInput()));
     }
-
+    
     private void block() {
         if (!Aura.mc.field_71439_g.func_70632_aY()) {
             Aura.mc.field_71442_b.func_78769_a((EntityPlayer)Aura.mc.field_71439_g, (World)Aura.mc.field_71441_e, Aura.mc.field_71439_g.func_70694_bm());
@@ -329,14 +329,14 @@ public class Aura extends Module
             this.blocking = true;
         }
     }
-
+    
     private void unblock() {
         if (Aura.mc.field_71439_g.func_70632_aY()) {
             PacketUtils.sendPacket((Packet<?>)new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.field_177992_a, EnumFacing.UP));
             this.blocking = false;
         }
     }
-
+    
     protected final Vec3 getVectorForRotation(final float p_getVectorForRotation_1_, final float p_getVectorForRotation_2_) {
         final float f = MathHelper.func_76134_b(-p_getVectorForRotation_2_ * 0.017453292f - 3.1415927f);
         final float f2 = MathHelper.func_76126_a(-p_getVectorForRotation_2_ * 0.017453292f - 3.1415927f);
@@ -344,13 +344,13 @@ public class Aura extends Module
         final float f4 = MathHelper.func_76126_a(-p_getVectorForRotation_1_ * 0.017453292f);
         return new Vec3((double)(f2 * f3), (double)f4, (double)(f * f3));
     }
-
+    
     private boolean isTeamMate(final EntityPlayer entity) {
         final String entName = entity.func_145748_c_().func_150254_d();
         final String playerName = Aura.mc.field_71439_g.func_145748_c_().func_150254_d();
-        return entName.length() >= 2 && playerName.length() >= 2 && entName.startsWith("ï¿½ï¿½") && playerName.startsWith("ï¿½ï¿½") && entName.charAt(1) == playerName.charAt(1);
+        return entName.length() >= 2 && playerName.length() >= 2 && entName.startsWith("¡ì") && playerName.startsWith("¡ì") && entName.charAt(1) == playerName.charAt(1);
     }
-
+    
     private void rotate(final UpdateEvent event, final float[] rotations, final float aimSpeed, final boolean lockview) {
         final float[] prevRotations = { this.lastYaw, this.lastPitch };
         final float[] cappedRotations = { this.maxAngleChange(prevRotations[0], rotations[0], aimSpeed), this.maxAngleChange(prevRotations[1], rotations[1], aimSpeed) };
@@ -362,13 +362,13 @@ public class Aura extends Module
             Aura.mc.field_71439_g.field_70125_A = appliedRotations[1];
         }
     }
-
+    
     private double getMouseGCD() {
         final float sens = Aura.mc.field_71474_y.field_74341_c * 0.6f + 0.2f;
         final float pow = sens * sens * sens * 8.0f;
         return pow * 0.15;
     }
-
+    
     private float[] applyGCD(final float[] rotations, final float[] prevRots) {
         final float yawDif = rotations[0] - prevRots[0];
         final float pitchDif = rotations[1] - prevRots[1];
@@ -379,7 +379,7 @@ public class Aura extends Module
         rotations[n2] -= (float)(pitchDif % gcd);
         return rotations;
     }
-
+    
     private float maxAngleChange(final float prev, final float now, final float maxTurn) {
         float dif = MathHelper.func_76142_g(now - prev);
         if (dif > maxTurn) {
@@ -390,67 +390,67 @@ public class Aura extends Module
         }
         return prev + dif;
     }
-
+    
     public enum AutoBlockMode
     {
-        None(false),
-        Fake(false),
+        None(false), 
+        Fake(false), 
         Vanilla(true);
-
+        
         public final boolean slow;
-
+        
         private AutoBlockMode(final boolean slow) {
             this.slow = slow;
         }
     }
-
+    
     public enum AttackTiming
     {
-        Pre,
+        Pre, 
         Post;
     }
-
+    
     public enum SortingMethod
     {
-        Distance((Comparator<EntityLivingBase>)new DistanceSorting()),
-        Health((Comparator<EntityLivingBase>)new HealthSorting()),
-        HurtTime((Comparator<EntityLivingBase>)new HurtTimeSorting()),
-        FOV((Comparator<EntityLivingBase>)new CrosshairSorting()),
+        Distance((Comparator<EntityLivingBase>)new DistanceSorting()), 
+        Health((Comparator<EntityLivingBase>)new HealthSorting()), 
+        HurtTime((Comparator<EntityLivingBase>)new HurtTimeSorting()), 
+        FOV((Comparator<EntityLivingBase>)new CrosshairSorting()), 
         Combined((Comparator<EntityLivingBase>)new CombinedSorting());
-
+        
         private final Comparator<EntityLivingBase> sorter;
-
+        
         private SortingMethod(final Comparator<EntityLivingBase> sorter) {
             this.sorter = sorter;
         }
-
+        
         public Comparator<EntityLivingBase> getSorter() {
             return this.sorter;
         }
     }
-
+    
     private static class EntityData
     {
         private final float[] rotations;
         private final double dist;
-
+        
         public EntityData(final float[] rotations, final double dist) {
             this.rotations = rotations;
             this.dist = dist;
         }
     }
-
+    
     private abstract static class AngleBasedSorting implements Comparator<EntityLivingBase>
     {
         protected abstract float getCurrentAngle();
-
+        
         @Override
         public int compare(final EntityLivingBase o1, final EntityLivingBase o2) {
             final float yaw = this.getCurrentAngle();
             return Double.compare(Math.abs(Utils.Player.getYawToEntity((Entity)o1) - yaw), Math.abs(Utils.Player.getYawToEntity((Entity)o2) - yaw));
         }
     }
-
+    
     private static class CrosshairSorting extends AngleBasedSorting
     {
         @Override
@@ -458,7 +458,7 @@ public class Aura extends Module
             return Aura.mc.field_71439_g.field_70177_z;
         }
     }
-
+    
     private static class CombinedSorting implements Comparator<EntityLivingBase>
     {
         @Override
@@ -473,7 +473,7 @@ public class Aura extends Module
             return t1;
         }
     }
-
+    
     private static class DistanceSorting implements Comparator<EntityLivingBase>
     {
         @Override

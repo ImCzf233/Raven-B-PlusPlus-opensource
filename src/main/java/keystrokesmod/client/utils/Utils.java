@@ -5,8 +5,6 @@ import net.minecraft.inventory.*;
 import net.minecraft.client.gui.inventory.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.enchantment.*;
-
-import java.util.List;
 import java.util.function.*;
 import net.minecraft.entity.*;
 import net.minecraft.client.entity.*;
@@ -42,8 +40,6 @@ import com.google.gson.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.io.*;
-import java.util.function.Predicate;
-
 import org.lwjgl.opengl.*;
 import net.minecraft.client.renderer.vertex.*;
 import net.minecraft.client.renderer.*;
@@ -739,7 +735,7 @@ public class Utils
         }
         
         public static String reformat(final String txt) {
-            return txt.replace("&", "ï¿½ï¿½");
+            return txt.replace("&", "¡ì");
         }
     }
     
