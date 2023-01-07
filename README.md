@@ -12,3 +12,7 @@
 ### 再也不碰IDM等东西了
 
 [![kdWpv.jpeg](https://i.328888.xyz/2023/01/07/kdWpv.jpeg)](https://imgloc.com/i/kdWpv)
+
+### 我破防了，我直接放出原作者地址，我跑路了，再见
+
+![kdwh8.png](https://i.328888.xyz/2023/01/07/kdwh8.png)
